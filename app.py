@@ -20,7 +20,6 @@ def load_data():
 
 raw_df, ref_df = load_data()
 
-st.set_page_config(page_title="PVD Search", layout="wide")
 
 # ---------- 2) 탭 UI ----------
 tab1, tab2 = st.tabs(["🔍 자재번호 검색", "🔍 재종 검색"])
