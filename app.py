@@ -1,5 +1,5 @@
 import streamlit as st               # ① 먼저 import
-st.set_page_config(                  # ② 즉시 페이지 설정
+st.set_page_config(                  
     page_title="PVD Search",
     layout="wide",
     initial_sidebar_state="collapsed"
