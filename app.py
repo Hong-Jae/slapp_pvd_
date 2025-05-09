@@ -1,5 +1,11 @@
-import streamlit as st
-import pandas as pd
+import streamlit as st               # ① 먼저 import
+st.set_page_config(                  # ② 즉시 페이지 설정
+    page_title="PVD Search",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+import pandas as pd                  # ③ 이후 나머지 import
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 
 DATA_PATH = "data/___PVD 공정 데이터 APPS_1.xlsx"
