@@ -25,102 +25,54 @@ raw_df, ref_df = load_data()
 tab1, tab2 = st.tabs(["🔍 자재번호 검색", "🔍 재종 검색"])
 
 # -------------------------------------------------
-# TAB 1 : 자재번호 / 형번 전방위 검색
-# -------------------------------------------------
+# ----------------- TAB 1 : 자재번호 검색 -----------------
 with tab1:
     st.subheader("자재번호·형번·재종 전역 검색")
-    query = st.text_input("검색어 입력(엔터)", placeholder="예: 1-02-, APKT1604, PC6510 ...")
-    # 정렬 & 그룹화 요구사항 반영
-    raw_sorted = raw_df.sort_values(["코팅그룹", "자재번호"], ascending=[True, True])
 
-    # 필터링 (대소문자 무시)
+    query = st.text_input("검색어 입력", placeholder="예: 1-02-, APKT1604, PC6510 ...")
+    raw_sorted = raw_df.sort_values(["코팅그룹", "자재번호"])
+
     if query:
-        mask = raw_sorted.apply(
-            lambda r: query.lower() in " ".join(r.astype(str)).lower(), axis=1
-        )
-        view = raw_sorted.loc[mask, ["자재번호", "형번", "재종", "코팅그룹"]]
+        mask = raw_sorted.apply(lambda r: query.lower() in " ".join(r.astype(str)).lower(), axis=1)
+        view = raw_sorted.loc[mask]
     else:
-        view = raw_sorted[["자재번호", "형번", "재종", "코팅그룹"]]
+        view = raw_sorted
 
-    # -------- AgGrid로 Deck-style 카드 목록 ----------
-    gb = GridOptionsBuilder.from_dataframe(view)
-    gb.configure_pagination(paginationAutoPageSize=False, paginationPageSize=15)
-    gb.configure_selection("single")
-    grid = AgGrid(
-        view,
-        gridOptions=gb.build(),
-        update_mode=GridUpdateMode.SELECTION_CHANGED,
-        height=500,
-    )
-
-    # --------- 선택 행 상세 보기 ----------
-    if grid["selected_rows"]:
-        sel = grid["selected_rows"][0]
-        key = sel["자재번호"]
-        detail_cols = [
-            "자재번호",
-            "형번",
-            "재종",
-            "전처리",
-            "후처리",
-            "핀",
-            "스프링 종류",
-            "스프링 개수",
-            "간격",
-            "줄",
-        ]
-        st.markdown("### 📄 상세 정보")
-        st.dataframe(raw_df[raw_df["자재번호"] == key][detail_cols].T,
-                     use_container_width=True)
+    # 📌 표시 컬럼 교체
+    cols_show = ["자재번호", "형번", "CB", "재종", "전처리", "후처리",
+                 "핀", "스프링 종류", "스프링 개수", "간격", "줄", "IS 개수(개/줄)"]
+    gb = GridOptionsBuilder.from_dataframe(view[cols_show])
+    gb.configure_pagination(paginationAutoPageSize=False, paginationPageSize=20)
+    grid = AgGrid(view[cols_show], gridOptions=gb.build(), height=550)
 
 # -------------------------------------------------
-# TAB 2 : 재종 검색 + 드롭다운 필터
-# -------------------------------------------------
+# ----------------- TAB 2 : 재종 검색 -----------------
 with tab2:
     st.subheader("재종·코팅그룹 상세 검색")
+
     col1, col2 = st.columns(2)
     with col1:
-        alloy_pick = st.selectbox(
-            "합금 선택", ["전체"] + sorted(ref_df["합금"].unique())
-        )
+        alloy_pick = st.selectbox("합금 선택", ["전체"] + sorted(ref_df["합금"].unique()))
     with col2:
-        # alloy 필터 적용해 재종 후보 좁히기
         temp = ref_df if alloy_pick == "전체" else ref_df[ref_df["합금"] == alloy_pick]
-        grade_pick = st.selectbox(
-            "재종 선택", ["전체"] + sorted(temp["재종"].unique())
-        )
+        grade_pick = st.selectbox("재종 선택", ["전체"] + sorted(temp["재종"].unique()))
 
     key2 = st.text_input("검색어 입력", placeholder="CX0824, TiAlN ...")
-    # 필터 순차 적용
+
     filt = ref_df.copy()
-    if alloy_pick != "전체":
-        filt = filt[filt["합금"] == alloy_pick]
-    if grade_pick != "전체":
-        filt = filt[filt["재종"] == grade_pick]
-    if key2:
-        filt = filt[filt.apply(lambda r: key2.lower() in " ".join(r.astype(str)).lower(), axis=1)]
+    if alloy_pick != "전체": filt = filt[filt["합금"] == alloy_pick]
+    if grade_pick != "전체": filt = filt[filt["재종"] == grade_pick]
+    if key2: filt = filt[filt.apply(lambda r: key2.lower() in " ".join(r.astype(str)).lower(), axis=1)]
 
-    # 정렬·그룹화 기준
-    filt = filt.sort_values(["박막명", "코팅그룹"], ascending=[True, True])
+    filt = filt.sort_values(["박막명", "코팅그룹"])
 
-    gb2 = GridOptionsBuilder.from_dataframe(
-        filt[["재종", "코팅그룹", "재종내역", "박막명"]]
-    )
-    gb2.configure_selection("single")
-    gb2.configure_pagination(paginationAutoPageSize=False, paginationPageSize=15)
-    grid2 = AgGrid(filt, gridOptions=gb2.build(),
-                   update_mode=GridUpdateMode.SELECTION_CHANGED,
-                   height=500)
-
-    if grid2["selected_rows"]:
-        sel2 = grid2["selected_rows"][0]["재종"]
-        detail2_cols = [
-            "재종", "코팅그룹", "재종내역", "코팅재종그룹 내역", "박막명",
-            "색상", "관리규격", "가용설비", "작업시간", "합금", "공정특이사항", "인선처리"
-        ]
-        st.markdown("### 📄 상세 정보")
-        st.dataframe(ref_df[ref_df["재종"] == sel2][detail2_cols].T,
-                     use_container_width=True)
+    # 📌 표시 컬럼 교체
+    cols2_show = ["재종", "코팅그룹", "재종내역", "코팅재종그룹 내역", "박막명",
+                  "색상", "관리규격", "가용설비", "작업시간", "합금",
+                  "공정특이사항", "인선처리"]
+    gb2 = GridOptionsBuilder.from_dataframe(filt[cols2_show])
+    gb2.configure_pagination(paginationAutoPageSize=False, paginationPageSize=20)
+    grid2 = AgGrid(filt[cols2_show], gridOptions=gb2.build(), height=550)
 
 # ---------- 3) 푸터 ----------
-st.caption("ⓒ 2025 Korloy DX · Streamlit Community Cloud 무료 플랜 활용")
+st.caption("ⓒ 2025 Korloy DX · Streamlit Community Cloud")
