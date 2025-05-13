@@ -102,7 +102,7 @@ with tab2:
     gb2 = GridOptionsBuilder.from_dataframe(filt[cols2_show])
     gb2.configure_pagination(paginationAutoPageSize=False, paginationPageSize=20)
     AgGrid(filt[cols2_show], gridOptions=gb2.build(), height=550)
-
+    
 # ---------- 4) 푸터 ----------
 st.caption("ⓒ 2025 Korloy DX · 연삭코팅기술팀 홍재민 선임")
 
