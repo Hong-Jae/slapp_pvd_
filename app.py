@@ -69,7 +69,7 @@ with tab1:
     gb1 = GridOptionsBuilder.from_dataframe(view[cols1])
     for col, w in calc_widths(view, cols1).items():
         gb1.configure_column(col, width=w)
-    gb1.configure_pagination(paginationAutoPageSize=False, paginationPageSize=20)
+    gb1.configure_pagination(paginationAutoPageSize=True, paginationPageSize=20)
 
     AgGrid(
         view[cols1].astype(str),
