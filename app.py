@@ -98,8 +98,13 @@ with tab1:
         )
 
         # 선택 시 상세로 전환
-        if grid_resp["selected_rows"]:
-            st.session_state[detail_key] = grid_resp["selected_rows"][0]
+        sel_rows = grid_resp.get("selected_rows", [])
+        if len(sel_rows) > 0:
+            sel_key = sel_rows[0]["자재번호"]          # 유니크 키
+            # 원본 raw_df 에서 전체 컬럼 dict 추출
+            st.session_state[detail_key] = (
+                raw_df[raw_df["자재번호"] == sel_key].iloc[0].to_dict()
+            )
             st.rerun()
 
 # ─ TAB 2 : 재종 검색 ───────────────────────────────────
@@ -146,8 +151,12 @@ with tab2:
             key="grid2"
         )
 
-        if grid2["selected_rows"]:
-            st.session_state[detail_key] = grid2["selected_rows"][0]
+        sel_rows2 = grid2.get("selected_rows", [])
+        if len(sel_rows2) > 0:
+            sel_key2 = sel_rows2[0]["재종"]
+            st.session_state[detail_key] = (
+                ref_df[ref_df["재종"] == sel_key2].iloc[0].to_dict()
+            )
             st.rerun()
 
 # ─ 푸터 ────────────────────────────────────────────────
