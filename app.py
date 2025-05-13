@@ -6,7 +6,7 @@ import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder
 
 # ── 0. 로그인 ───────────────────────────────────────────
-VALID_USERS = {"korloy": "19660611"}
+VALID_USERS = {"Korloy": "19660611"}
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
@@ -16,7 +16,7 @@ def login():
         st.success("로그인 성공! 🎉")
         st.rerun()
     else:
-        st.error("ID 또는 비밀번호가 잘못됐음!")
+        st.error("ID 또는 비밀번호가 틀렸습니다. 대소문자를 확인해 주세요.")
 
 def logout():
     st.session_state.authenticated = False
@@ -117,4 +117,4 @@ with tab2:
     )
 
 # ─ 푸터 ────────────────────────────────────────────────
-st.caption("ⓒ 2025 Korloy DX · Streamlit Community Cloud")
+st.caption("ⓒmade by 연삭코팅기술팀 홍재민 · 2025 Korloy DX")
