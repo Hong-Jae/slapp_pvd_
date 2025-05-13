@@ -21,7 +21,7 @@ def build_grid(df, col_widths=None):
     # (2) 숫자만 있는 컬럼은 폭 직접 지정
     if col_widths:
         for col, width in col_widths.items():
-            gb.configure_column(col, maxWidth=width, minWidth=50, flex=1)
+            gb.configure_column(col, maxWidth=30, minWidth=10, flex=1)
 
     # (3) 처음 그릴 때 자동 폭 맞춤
     auto_size = JsCode('''function(params) {
