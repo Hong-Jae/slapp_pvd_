@@ -20,7 +20,6 @@ def login():
 
 def logout():
     st.session_state.authenticated = False
-    # 상세 보기 상태도 초기화
     st.session_state.pop("detail1", None)
     st.session_state.pop("detail2", None)
     st.rerun()
@@ -48,17 +47,17 @@ def calc_widths(df, cols, px_per_char=10, margin=30, min_px=120, max_px=600):
     out = {}
     for c in cols:
         m = max(df[c].astype(str).str.len().max(), len(c))
-        out[c] = int(min(max(m * px_per_char + margin, min_px), max_px))
+        out[c] = int(min(max(m * px_per_char + margin, min_px), max_px))  # ← int 캐스팅
     return out
 
-# ── 상세공통: 세로 카드 형태로 보여주기 ──────────────────
+# ── 상세공통 UI ──────────────────────────────────────────
 def show_detail(row: dict, cols: list, back_key: str):
     st.button("◀ 뒤로가기", on_click=lambda: st.session_state.pop(back_key), key=f"back_{back_key}")
     for c in cols:
         st.markdown(f"**{c}**")
         st.write(row.get(c, ""))
 
-# ── 2. UI 탭 ────────────────────────────────────────────
+# ── 2. 탭 UI ────────────────────────────────────────────
 tab1, tab2 = st.tabs(["🔍 자재번호 검색", "🔍 재종 검색"])
 
 # ─ TAB 1 : 자재번호 검색 ────────────────────────────────
@@ -68,7 +67,6 @@ with tab1:
                    "가용설비", "관리규격", "RUN TIME(분)", "전처리", "후처리",
                    "공정특이사항", "핀", "스프링 종류", "스프링 개수", "간격", "줄", "IS 개수(개/줄)"]
 
-    # 이미 상세화면이면 바로 보여주고 종료
     if detail_key in st.session_state:
         show_detail(st.session_state[detail_key], detail_cols, detail_key)
     else:
@@ -87,24 +85,18 @@ with tab1:
         for col, w in calc_widths(view, list_cols).items():
             gb1.configure_column(col, width=w)
         gb1.configure_pagination(paginationAutoPageSize=False, paginationPageSize=20)
-        gb1.configure_selection("single")   # 행 선택 켜기
+        gb1.configure_selection("single")
 
-        grid_resp = AgGrid(
-            view[list_cols].astype(str),
-            gridOptions=gb1.build(),
-            height=550,
-            fit_columns_on_grid_load=False,
-            key="grid1"
-        )
+        grid_resp = AgGrid(view[list_cols].astype(str),
+                           gridOptions=gb1.build(),
+                           height=550,
+                           fit_columns_on_grid_load=False,
+                           key="grid1")
 
-        # 선택 시 상세로 전환
         sel_rows = grid_resp.get("selected_rows", [])
         if len(sel_rows) > 0:
-            sel_key = sel_rows[0]["자재번호"]          # 유니크 키
-            # 원본 raw_df 에서 전체 컬럼 dict 추출
-            st.session_state[detail_key] = (
-                raw_df[raw_df["자재번호"] == sel_key].iloc[0].to_dict()
-            )
+            sel_key = sel_rows[0]["자재번호"]
+            st.session_state[detail_key] = raw_df[raw_df["자재번호"] == sel_key].iloc[0].to_dict()
             st.rerun()
 
 # ─ TAB 2 : 재종 검색 ───────────────────────────────────
@@ -143,20 +135,16 @@ with tab2:
         gb2.configure_pagination(paginationAutoPageSize=False, paginationPageSize=20)
         gb2.configure_selection("single")
 
-        grid2 = AgGrid(
-            filt[list_cols2].astype(str),
-            gridOptions=gb2.build(),
-            height=550,
-            fit_columns_on_grid_load=False,
-            key="grid2"
-        )
+        grid2 = AgGrid(filt[list_cols2].astype(str),
+                       gridOptions=gb2.build(),
+                       height=550,
+                       fit_columns_on_grid_load=False,
+                       key="grid2")
 
         sel_rows2 = grid2.get("selected_rows", [])
         if len(sel_rows2) > 0:
             sel_key2 = sel_rows2[0]["재종"]
-            st.session_state[detail_key] = (
-                ref_df[ref_df["재종"] == sel_key2].iloc[0].to_dict()
-            )
+            st.session_state[detail_key] = ref_df[ref_df["재종"] == sel_key2].iloc[0].to_dict()
             st.rerun()
 
 # ─ 푸터 ────────────────────────────────────────────────
