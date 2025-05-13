@@ -1,12 +1,15 @@
-# PVD Search App – login + auto column width (char-based)
+# ───────────────────────────────────────────────────────
+# PVD Search App – full 30k rows, smart column width
+# ───────────────────────────────────────────────────────
 import streamlit as st
-st.set_page_config(page_title="PVD Search", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="PVD Search", layout="wide",
+                   initial_sidebar_state="collapsed")
 
 import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder
 
-# ── 0. 로그인 ───────────────────────────────────────────
-VALID_USERS = {"korloy": "19660611"}
+# ── 0. 로그인 로직 ──────────────────────────────────────
+VALID_USERS = {"Korloy": "19660611"}
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
@@ -40,20 +43,19 @@ def load_data():
     return raw.fillna(""), ref.fillna("")
 raw_df, ref_df = load_data()
 
-# ── 유틸 : 폭 계산 ──────────────────────────────────────
-def calc_widths(df: pd.DataFrame, cols, px_per_char=5, margin=5, min_px=120, max_px=600):
+# ── 유틸 : 컬럼 폭 계산 ─────────────────────────────────
+def calc_widths(df: pd.DataFrame, cols,
+                px_per_char=8, max_px=300, min_px=80):
     out = {}
     for c in cols:
-        max_len = max(df[c].astype(str).str.len().max(), len(c))
-        out[c] = int(min(max_len * px_per_char + margin, max_px))
-        if out[c] < min_px:
-            out[c] = min_px
+        max_len = max(df[c].astype(str).map(len).max(), len(c))
+        out[c] = int(max(min_px, min(max_len * px_per_char, max_px)))
     return out
 
-# ── 2. UI 탭 ────────────────────────────────────────────
+# ── 2. UI 탭 ───────────────────────────────────────────
 tab1, tab2 = st.tabs(["🔍 자재번호 검색", "🔍 재종 검색"])
 
-# ─ TAB 1 ───────────────────────────────────────────────
+# ─ TAB 1 : 자재번호 검색 ──────────────────────────────
 with tab1:
     st.subheader("자재번호·형번·재종 전역 검색")
     query = st.text_input("검색어 입력", placeholder="예: 1-02-, APKT1604, PC6510 ...")
@@ -69,30 +71,31 @@ with tab1:
     gb1 = GridOptionsBuilder.from_dataframe(view[cols1])
     for col, w in calc_widths(view, cols1).items():
         gb1.configure_column(col, width=w)
-    gb1.configure_pagination(paginationAutoPageSize=False, paginationPageSize=20)
 
+    # ❌ pagination 제거 → 모든 행 버추얼 스크롤
+    grid_opt1 = gb1.build()
     AgGrid(
         view[cols1].astype(str),
-        gridOptions=gb1.build(),
-        height=550,
-        fit_columns_on_grid_load=False
+        gridOptions=grid_opt1,
+        height=600,                      # 그리드 높이 (조절 가능)
+        fit_columns_on_grid_load=True
     )
 
-# ─ TAB 2 ───────────────────────────────────────────────
+# ─ TAB 2 : 재종 검색 ──────────────────────────────────
 with tab2:
     st.subheader("재종·코팅그룹 상세 검색")
     c1, c2 = st.columns(2)
     with c1:
-        alloy_pick = st.selectbox("합금 선택", ["전체"] + sorted(ref_df["합금"].unique()))
+        alloy = st.selectbox("합금 선택", ["전체"] + sorted(ref_df["합금"].unique()))
     with c2:
-        tmp = ref_df if alloy_pick == "전체" else ref_df[ref_df["합금"] == alloy_pick]
-        grade_pick = st.selectbox("재종 선택", ["전체"] + sorted(tmp["재종"].unique()))
+        tmp = ref_df if alloy == "전체" else ref_df[ref_df["합금"] == alloy]
+        grade = st.selectbox("재종 선택", ["전체"] + sorted(tmp["재종"].unique()))
 
     key2 = st.text_input("검색어 입력", placeholder="CX0824, TiAlN ...")
 
     filt = ref_df.copy()
-    if alloy_pick != "전체": filt = filt[filt["합금"] == alloy_pick]
-    if grade_pick != "전체": filt = filt[filt["재종"] == grade_pick]
+    if alloy != "전체": filt = filt[filt["합금"] == alloy]
+    if grade != "전체": filt = filt[filt["재종"] == grade]
     if key2: filt = filt[filt.apply(lambda r: key2.lower() in " ".join(r.astype(str)).lower(), axis=1)]
 
     filt = filt.sort_values(["박막명", "코팅그룹"])
@@ -104,14 +107,14 @@ with tab2:
     gb2 = GridOptionsBuilder.from_dataframe(filt[cols2])
     for col, w in calc_widths(filt, cols2).items():
         gb2.configure_column(col, width=w)
-    gb2.configure_pagination(paginationAutoPageSize=False, paginationPageSize=20)
 
+    grid_opt2 = gb2.build()
     AgGrid(
         filt[cols2].astype(str),
-        gridOptions=gb2.build(),
-        height=550,
-        fit_columns_on_grid_load=False
+        gridOptions=grid_opt2,
+        height=600,
+        fit_columns_on_grid_load=True
     )
 
 # ─ 푸터 ────────────────────────────────────────────────
-st.caption("ⓒ 2025 Korloy DX · Streamlit Community Cloud")
+st.caption("ⓒ 2025 Korloy DX · 연삭코팅기술팀 홍재민 선임")
