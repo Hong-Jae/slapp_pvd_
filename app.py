@@ -1,17 +1,23 @@
 import streamlit as st
 import streamlit_authenticator as stauth
 
-# ---------- 0) 로그인 기능 설정 (Hasher 제거, 해시 비번 직접 사용) ----------
+# ---------- 0) 로그인 기능 설정 ----------
+# 사용자 정보
+names = ["korloy"]
+usernames = ["korloy"]
+passwords = ["19660611"]
+
+# 해시된 비번 생성 (실제 서비스시엔 미리 해시해서 secrets에 저장 권장)
+hashed_passwords = stauth.Hasher(passwords).generate()
+
 credentials = {
     "usernames": {
-        "korloy": {
-            "name": "korloy",
-            # 사전에 bcrypt로 생성한 해시 문자열
-            "password": "$2b$12$uvoIW1DFxVzJ9viy5E7gn.Tl3b15/8C0KCy1NuYm08n1fh6vMALV."
-        }
+        usernames[i]: {"name": names[i], "password": hashed_passwords[i]}
+        for i in range(len(usernames))
     }
 }
 
+# Authenticate 객체 생성
 authenticator = stauth.Authenticate(
     credentials,
     cookie_name="pvd_app_cookie",
@@ -21,6 +27,7 @@ authenticator = stauth.Authenticate(
 
 # 로그인 UI
 name, auth_status, username = authenticator.login("로그인", "main")
+
 if auth_status is False:
     st.error("아이디/비밀번호가 틀렸음")
     st.stop()
@@ -29,7 +36,7 @@ elif auth_status is None:
     st.stop()
 
 # ---------- 1) 페이지 설정 및 기본 import ----------
-authenticator.logout("로그아웃", "sidebar")
+authenticator.logout("로그아웃", "sidebar")   # 사이드바에 로그아웃 버튼
 st.set_page_config(
     page_title="PVD Search",
     layout="wide",
@@ -102,7 +109,6 @@ with tab2:
     gb2 = GridOptionsBuilder.from_dataframe(filt[cols2_show])
     gb2.configure_pagination(paginationAutoPageSize=False, paginationPageSize=20)
     AgGrid(filt[cols2_show], gridOptions=gb2.build(), height=550)
-    
-# ---------- 4) 푸터 ----------
-st.caption("ⓒ 2025 Korloy DX · 연삭코팅기술팀 홍재민 선임")
 
+# ---------- 4) 푸터 ----------
+st.caption("ⓒ 2025 Korloy DX · Streamlit Community Cloud")
