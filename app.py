@@ -6,9 +6,31 @@ st.set_page_config(
 )
 
 import pandas as pd                  # ③ 이후 나머지 import
-from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
+from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode, JsCode
 
 DATA_PATH = "data/___PVD 공정 데이터 APPS_1.xlsx"
+
+# 공통 함수로 빼두면 두 탭에서 재사용 가능
+def build_grid(df, col_widths=None):
+    gb = GridOptionsBuilder.from_dataframe(df)
+    gb.configure_pagination(paginationAutoPageSize=False, paginationPageSize=20)
+    
+    # (1) 기본은 flex 1 로 주고…
+    gb.configure_default_column(resizable=True, flex=1, minWidth=70)
+
+    # (2) 숫자만 있는 컬럼은 폭 직접 지정
+    if col_widths:
+        for col, width in col_widths.items():
+            gb.configure_column(col, maxWidth=width, minWidth=width, flex=0)
+
+    # (3) 처음 그릴 때 자동 폭 맞춤
+    auto_size = JsCode('''function(params) {
+        let allColumnIds = [];
+        params.columnApi.getAllColumns().forEach((column) => {allColumnIds.push(column.colId);});
+        params.columnApi.autoSizeColumns(allColumnIds, false);
+    }''')
+    gb.configure_grid_options(onFirstDataRendered=auto_size)
+    return gb
 
 # ---------- 1) 데이터 로드 ----------
 @st.cache_data
