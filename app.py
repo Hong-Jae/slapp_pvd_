@@ -1,5 +1,5 @@
 # ───────────────────────────────────────────────────────
-# PVD Search App  – with simple login + auto-column-width
+# PVD Search App – login + auto column width (safe)
 # ID : korloy   PW : 19660611
 # ───────────────────────────────────────────────────────
 import streamlit as st
@@ -10,7 +10,7 @@ st.set_page_config(page_title="PVD Search",
 import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder
 
-# ───── 0. 로그인 ────────────────────────────────────────
+# ── 0. 로그인 ───────────────────────────────────────────
 VALID_USERS = {"korloy": "19660611"}
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
@@ -36,27 +36,27 @@ if not st.session_state.authenticated:
 
 st.sidebar.button("🔓 로그아웃", on_click=logout)
 
-# ───── 1. 데이터 로드 ───────────────────────────────────
+# ── 1. 데이터 로드 ──────────────────────────────────────
 DATA_PATH = "data/___PVD 공정 데이터 APPS_1.xlsx"
 @st.cache_data
 def load_data():
-    raw  = pd.read_excel(DATA_PATH, sheet_name="raw", engine="openpyxl")
-    ref  = pd.read_excel(DATA_PATH, sheet_name="참조표2", engine="openpyxl")
+    raw = pd.read_excel(DATA_PATH, sheet_name="raw", engine="openpyxl")
+    ref = pd.read_excel(DATA_PATH, sheet_name="참조표2", engine="openpyxl")
     return raw.fillna(""), ref.fillna("")
 raw_df, ref_df = load_data()
 
-# ───── 유틸 : 컬럼 폭 계산 함수 ───────────────────────────
+# ── 유틸 : width 계산 ───────────────────────────────────
 def calc_widths(df: pd.DataFrame, cols, px_per_char=8, max_px=300, min_px=80):
-    w = {}
+    out = {}
     for c in cols:
         max_len = max(df[c].astype(str).map(len).max(), len(c))
-        w[c] = max(min_px, min(max_len * px_per_char, max_px))
-    return w
+        out[c] = int(max(min_px, min(max_len * px_per_char, max_px)))
+    return out
 
-# ───── 2. UI 탭 ─────────────────────────────────────────
+# ── 2. UI 탭 ────────────────────────────────────────────
 tab1, tab2 = st.tabs(["🔍 자재번호 검색", "🔍 재종 검색"])
 
-# ── TAB 1 ─────────────────────────────────────────────
+# ─ TAB 1 ───────────────────────────────────────────────
 with tab1:
     st.subheader("자재번호·형번·재종 전역 검색")
     query = st.text_input("검색어 입력", placeholder="예: 1-02-, APKT1604, PC6510 ...")
@@ -74,9 +74,14 @@ with tab1:
         gb1.configure_column(col, width=w)
     gb1.configure_pagination(paginationAutoPageSize=False, paginationPageSize=20)
 
-    AgGrid(view[cols1], gridOptions=gb1.build(), height=550)
+    AgGrid(
+        view[cols1].astype(str),          # 문자열로 캐스팅 → 직렬화 안전
+        gridOptions=gb1.build(),
+        height=550,
+        fit_columns_on_grid_load=True
+    )
 
-# ── TAB 2 ─────────────────────────────────────────────
+# ─ TAB 2 ───────────────────────────────────────────────
 with tab2:
     st.subheader("재종·코팅그룹 상세 검색")
     c1, c2 = st.columns(2)
@@ -104,7 +109,12 @@ with tab2:
         gb2.configure_column(col, width=w)
     gb2.configure_pagination(paginationAutoPageSize=False, paginationPageSize=20)
 
-    AgGrid(filt[cols2], gridOptions=gb2.build(), height=550)
+    AgGrid(
+        filt[cols2].astype(str),
+        gridOptions=gb2.build(),
+        height=550,
+        fit_columns_on_grid_load=True
+    )
 
-# ───── 푸터 ─────────────────────────────────────────────
-st.caption("ⓒ 2025 Korloy DX · 연삭코팅기술팀 홍재민 선임")
+# ─ 푸터 ────────────────────────────────────────────────
+st.caption("ⓒ 2025 Korloy DX · Streamlit Community Cloud")
