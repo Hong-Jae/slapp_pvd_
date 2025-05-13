@@ -48,7 +48,7 @@ def calc_widths(df, cols, px_per_char=10, margin=30, min_px=120, max_px=600):
     out = {}
     for c in cols:
         m = max(df[c].astype(str).str.len().max(), len(c))
-        out[c] = min(max(m * px_per_char + margin, min_px), max_px)
+        out[c] = int(min(max(m * px_per_char + margin, min_px), max_px))
     return out
 
 # ── 상세공통: 세로 카드 형태로 보여주기 ──────────────────
