@@ -41,10 +41,8 @@ with tab1:
     # 📌 표시 컬럼 교체
     cols_show = ["자재번호", "형번", "CB", "재종", "전처리", "후처리",
                  "핀", "스프링 종류", "스프링 개수", "간격", "줄", "IS 개수(개/줄)"]
-    numeric_cols = {"핀":10, "스프링 종류":10, "스프링 개수":10, "간격":10, "줄":10, "IS 개수(개/줄)":10}
-    
-    gb = build_grid(view[cols_show], numeric_cols)
-    
+    gb = GridOptionsBuilder.from_dataframe(view[cols_show])
+    gb.configure_pagination(paginationAutoPageSize=True, paginationPageSize=20)
     grid = AgGrid(view[cols_show], gridOptions=gb.build(), height=550)
 
 # -------------------------------------------------
