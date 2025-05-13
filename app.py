@@ -87,17 +87,21 @@ with tab1:
         gb1.configure_pagination(paginationAutoPageSize=False, paginationPageSize=20)
         gb1.configure_selection("single")
 
-        grid_resp = AgGrid(view[list_cols].astype(str),
-                           gridOptions=gb1.build(),
-                           height=550,
-                           fit_columns_on_grid_load=False,
-                           key="grid1")
+        grid_resp = AgGrid(
+            view[list_cols].astype(str),
+            gridOptions=gb1.build(),
+            height=550,
+            fit_columns_on_grid_load=False,
+            key="grid1",
+            update_mode="SELECTION_CHANGED",
+            return_mode="AS_INPUT",          # ← DataFrame 반환
+        )
 
-        sel_rows = grid_resp.get("selected_rows", [])
-        if len(sel_rows) > 0:
-            sel_key = sel_rows[0]["자재번호"]
-            st.session_state[detail_key] = raw_df[raw_df["자재번호"] == sel_key].iloc[0].to_dict()
+        sel = grid_resp["selected_rows"]
+        if isinstance(sel, pd.DataFrame) and not sel.empty:
+            st.session_state[detail_key] = sel.iloc[0].to_dict()
             st.rerun()
+
 
 # ─ TAB 2 : 재종 검색 ───────────────────────────────────
 with tab2:
@@ -135,17 +139,21 @@ with tab2:
         gb2.configure_pagination(paginationAutoPageSize=False, paginationPageSize=20)
         gb2.configure_selection("single")
 
-        grid2 = AgGrid(filt[list_cols2].astype(str),
-                       gridOptions=gb2.build(),
-                       height=550,
-                       fit_columns_on_grid_load=False,
-                       key="grid2")
-
-        sel_rows2 = grid2.get("selected_rows", [])
-        if len(sel_rows2) > 0:
-            sel_key2 = sel_rows2[0]["재종"]
-            st.session_state[detail_key] = ref_df[ref_df["재종"] == sel_key2].iloc[0].to_dict()
+        grid2 = AgGrid(
+            filt[list_cols2].astype(str),
+            gridOptions=gb2.build(),
+            height=550,
+            fit_columns_on_grid_load=False,
+            key="grid2",
+            update_mode="SELECTION_CHANGED",
+            return_mode="AS_INPUT",
+        )
+        
+        sel2 = grid2["selected_rows"]
+        if isinstance(sel2, pd.DataFrame) and not sel2.empty:
+            st.session_state[detail_key] = sel2.iloc[0].to_dict()
             st.rerun()
+
 
 # ─ 푸터 ────────────────────────────────────────────────
 st.caption("ⓒ made by. 연삭코팅기술팀 홍재민 선임 · 2025 Korloy DX")
