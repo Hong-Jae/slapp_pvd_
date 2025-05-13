@@ -59,9 +59,12 @@ with tab1:
     query = st.text_input("검색어 입력", placeholder="예: 1-02-, APKT1604, PC6510 ...")
 
     raw_sorted = raw_df.sort_values(["코팅그룹", "자재번호"])
-    view = raw_sorted if not query else raw_sorted[
-        raw_sorted.apply(lambda r: query.lower() in " ".join(r.astype(str)).lower(), axis=1)
-    ]
+    if query:
+        mask = raw_sorted.apply(lambda r: query.lower() in " ".join(r.astype(str)).lower(), axis=1)
+        view = raw_sorted.loc[mask]
+    else:
+        view = raw_sorted
+
 
     cols1 = ["자재번호", "형번", "CB", "재종", "전처리", "후처리",
              "핀", "스프링 종류", "스프링 개수", "간격", "줄", "IS 개수(개/줄)"]
@@ -69,7 +72,7 @@ with tab1:
     gb1 = GridOptionsBuilder.from_dataframe(view[cols1])
     for col, w in calc_widths(view, cols1).items():
         gb1.configure_column(col, width=w)
-    gb1.configure_pagination(paginationAutoPageSize=True, paginationPageSize=20)
+    gb1.configure_pagination(paginationAutoPageSize=False, paginationPageSize=20)
 
     AgGrid(
         view[cols1].astype(str),
