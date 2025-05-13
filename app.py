@@ -24,13 +24,13 @@ def login():
     if VALID_USERS.get(uid) == pw:
         st.session_state.authenticated = True
         st.success("로그인 성공! 🎉")
-        st.experimental_rerun()
+        st.rerun()
     else:
         st.error("ID 또는 비밀번호가 잘못됐음!")
 
 def logout():
     st.session_state.authenticated = False
-    st.experimental_rerun()
+    st.rerun()
 
 # ───────────────────────────────────────────────────────
 if not st.session_state.authenticated:
