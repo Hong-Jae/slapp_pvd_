@@ -117,4 +117,4 @@ with tab2:
     )
 
 # ─ 푸터 ────────────────────────────────────────────────
-st.caption("ⓒmade by 연삭코팅기술팀 홍재민 · 2025 Korloy DX")
+st.caption("ⓒ made by. 연삭코팅기술팀 홍재민 선임 · 2025 Korloy DX")
