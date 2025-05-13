@@ -42,7 +42,7 @@ with tab1:
     cols_show = ["자재번호", "형번", "CB", "재종", "전처리", "후처리",
                  "핀", "스프링 종류", "스프링 개수", "간격", "줄", "IS 개수(개/줄)"]
     gb = GridOptionsBuilder.from_dataframe(view[cols_show])
-    gb.configure_pagination(paginationAutoPageSize=True, paginationPageSize=20)
+    gb.configure_pagination(paginationAutoPageSize=True, paginationPageSize=10)
     grid = AgGrid(view[cols_show], gridOptions=gb.build(), height=550)
 
 # -------------------------------------------------
