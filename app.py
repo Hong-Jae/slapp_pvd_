@@ -41,7 +41,7 @@ def load_data():
 raw_df, ref_df = load_data()
 
 # ── 유틸 : 폭 계산 ──────────────────────────────────────
-def calc_widths(df: pd.DataFrame, cols, px_per_char=10, margin=10, min_px=120, max_px=600):
+def calc_widths(df: pd.DataFrame, cols, px_per_char=5, margin=10, min_px=120, max_px=600):
     out = {}
     for c in cols:
         max_len = max(df[c].astype(str).str.len().max(), len(c))
