@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import extra_streamlit_components as stx
 # 기존: from extra_streamlit_components import CookieManager
 
-cookie_mgr = stx.CookieManager(prefix="pvd")
+# cookie_mgr = stx.CookieManager(prefix="pvd")
 
 
 VALID_USERS = {"Korloy": "19660611"}             # 계정 1개
@@ -19,7 +19,7 @@ COOKIE_NAME   = "pvd_auth"                       # 쿠키 키
 COOKIE_TTL    = 30                               # 유지 일수 (필요 시 조정)
 FIXED_TOKEN   = hashlib.sha256("Korloy|19660611".encode()).hexdigest()
 
-# cookie_mgr: CookieManager = CookieManager(prefix="pvd")   # prefix로 충돌 방지
+cookie_mgr: CookieManager = CookieManager(prefix="pvd")   # prefix로 충돌 방지
 
 # 1) 쿠키 확인 → 세션 인증 플래그 세팅
 if "authenticated" not in st.session_state:
