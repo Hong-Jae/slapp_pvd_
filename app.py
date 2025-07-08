@@ -32,19 +32,17 @@ def login():
     pw  = st.session_state["__pw"].strip()
     if VALID_USERS.get(uid) == pw:
         st.session_state.authenticated = True
-        expires = (
-            datetime.utcnow() + timedelta(days=COOKIE_TTL)
-        ).strftime("%a, %d %b %Y %H:%M:%S GMT")
-        cookie_mgr.set(COOKIE_NAME, FIXED_TOKEN, expires=expires)
+
+        # 만료 시각 계산
+        expires_at = datetime.utcnow() + timedelta(days=COOKIE_TTL)
+
+        # ✅ 여기: expires → expires_at 로 변경
+        cookie_mgr.set(COOKIE_NAME, FIXED_TOKEN, expires_at=expires_at)
+
         st.success("로그인 성공! 🎉")
         st.rerun()
     else:
         st.error("ID 또는 비밀번호가 틀렸음. 대소문자 확인 바람.")
-
-def logout():
-    st.session_state.authenticated = False
-    cookie_mgr.delete(COOKIE_NAME)
-    st.rerun()
 
 # 3) 로그인 화면
 if not st.session_state.authenticated:
