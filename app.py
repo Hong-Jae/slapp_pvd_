@@ -8,7 +8,11 @@ from st_aggrid import AgGrid, GridOptionsBuilder
 # ── 0. 로그인 ───────────────────────────────────────────
 import hashlib
 from datetime import datetime, timedelta
-from extra_streamlit_components import CookieManager
+import extra_streamlit_components as stx
+# 기존: from extra_streamlit_components import CookieManager
+
+cookie_mgr = stx.CookieManager()
+
 
 VALID_USERS = {"Korloy": "19660611"}             # 계정 1개
 COOKIE_NAME   = "pvd_auth"                       # 쿠키 키
