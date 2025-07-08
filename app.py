@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import extra_streamlit_components as stx
 # 기존: from extra_streamlit_components import CookieManager
 
-cookie_mgr = stx.cookieManager(perfix="pvd")
+cookie_mgr = stx.CookieManager(prefix="pvd")
 
 
 VALID_USERS = {"Korloy": "19660611"}             # 계정 1개
