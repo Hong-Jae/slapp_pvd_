@@ -6,13 +6,34 @@ import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder
 
 # ── 0. 로그인 ───────────────────────────────────────────
-VALID_USERS = {"Korloy": "19660611"}
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
+import hashlib
+from datetime import datetime, timedelta
+from extra_streamlit_components import CookieManager
 
-def login():
-    if VALID_USERS.get(st.session_state["__uid"].strip()) == st.session_state["__pw"].strip():
+VALID_USERS = {"Korloy": "19660611"}             # 계정 1개
+COOKIE_NAME   = "pvd_auth"                       # 쿠키 키
+COOKIE_TTL    = 30                               # 유지 일수 (필요 시 조정)
+FIXED_TOKEN   = hashlib.sha256("Korloy|19660611".encode()).hexdigest()
+
+cookie_mgr: CookieManager = CookieManager(prefix="pvd")   # prefix로 충돌 방지
+
+# 1) 쿠키 확인 → 세션 인증 플래그 세팅
+if "authenticated" not in st.session_state:
+    cookies = cookie_mgr.get_all()
+    if cookies.get(COOKIE_NAME) == FIXED_TOKEN:
         st.session_state.authenticated = True
+    else:
+        st.session_state.authenticated = False
+
+# 2) 로그인/로그아웃 함수
+def login():
+    uid = st.session_state["__uid"].strip()
+    pw  = st.session_state["__pw"].strip()
+    if VALID_USERS.get(uid) == pw:
+        st.session_state.authenticated = True
+        # 쿠키 만료 시각 지정
+        expires = (datetime.utcnow() + timedelta(days=COOKIE_TTL)).strftime("%a, %d %b %Y %H:%M:%S GMT")
+        cookie_mgr.set(COOKIE_NAME, FIXED_TOKEN, expires=expires)    # 쿠키 저장
         st.success("로그인 성공! 🎉")
         st.rerun()
     else:
@@ -20,16 +41,44 @@ def login():
 
 def logout():
     st.session_state.authenticated = False
+    cookie_mgr.delete(COOKIE_NAME)          # 쿠키 삭제 → 완전 로그아웃
     st.rerun()
 
+# 3) UI
 if not st.session_state.authenticated:
     st.title("🔐 PVD Search ‒ Login")
-    st.text_input("ID", key="__uid")
-    st.text_input("Password", type="password", key="__pw")
+    st.text_input("ID",        key="__uid")
+    st.text_input("Password",  key="__pw", type="password")
     st.button("로그인", on_click=login)
     st.stop()
 
 st.sidebar.button("🔓 로그아웃", on_click=logout)
+
+
+# VALID_USERS = {"Korloy": "19660611"}
+# if "authenticated" not in st.session_state:
+#     st.session_state.authenticated = False
+
+# def login():
+#     if VALID_USERS.get(st.session_state["__uid"].strip()) == st.session_state["__pw"].strip():
+#         st.session_state.authenticated = True
+#         st.success("로그인 성공! 🎉")
+#         st.rerun()
+#     else:
+#         st.error("ID 또는 비밀번호가 틀렸습니다. 대소문자를 확인해 주세요.")
+
+# def logout():
+#     st.session_state.authenticated = False
+#     st.rerun()
+
+# if not st.session_state.authenticated:
+#     st.title("🔐 PVD Search ‒ Login")
+#     st.text_input("ID", key="__uid")
+#     st.text_input("Password", type="password", key="__pw")
+#     st.button("로그인", on_click=login)
+#     st.stop()
+
+# st.sidebar.button("🔓 로그아웃", on_click=logout)
 
 # ── 1. 데이터 로드 ──────────────────────────────────────
 DATA_PATH = "data/___PVD 공정 데이터 APPS_1.xlsx"
