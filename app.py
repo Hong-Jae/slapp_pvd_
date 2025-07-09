@@ -59,7 +59,7 @@ with tab1:
         st.subheader("자재번호 · 형번 · 재종 전역 검색")
         query = st.text_input(
             "검색어 입력",
-            placeholder="예: 1-02-..., APKT1604, PC6510 등 여러 키워드를 띄어쓰기로 검색 가능",
+            placeholder="예: (대문자) 1-02-..., APKT1604, PC6510 등 여러 키워드를 띄어쓰기로 검색 가능",
             help="입력한 모든 키워드가 포함된 행을 검색합니다."
         )
 
@@ -108,15 +108,14 @@ with tab2:
     # [개선] 필터 영역을 컨테이너로 묶고 레이아웃 조정
     with st.container(border=True):
         st.subheader("재종 · 코팅그룹 상세 검색")
+        key2 = st.text_input("검색어 입력", placeholder="예: (대문자) CX0824, PVD22 ...", key="keyword_search")
         c1, c2 = st.columns(2)
         with c1:
             alloy_pick = st.selectbox("합금 선택", ["전체"] + sorted(ref_df["합금"].unique()), key="alloy_picker")
         with c2:
             # 합금 선택에 따라 재종 목록 동적 변경
             filtered_grades = ref_df if alloy_pick == "전체" else ref_df[ref_df["합금"] == alloy_pick]
-            grade_pick = st.selectbox("재종 선택", ["전체"] + sorted(filtered_grades["재종"].unique()), key="grade_picker")
-
-        key2 = st.text_input("추가 검색어", placeholder="CX0824, TiAlN ...", key="keyword_search")
+            grade_pick = st.selectbox("코팅 재종 선택", ["전체"] + sorted(filtered_grades["재종"].unique()), key="grade_picker")
 
     # 필터링 로직
     filt = ref_df.copy()
